@@ -30,6 +30,7 @@ function toQuestion(q: WireQuestion): Question {
 export function createApp(opts: { model: DecisionModel; sink?: TraceSink }): Hono {
   const app = new Hono();
 
+  app.get("/", (c) => c.json({ service: "agent-control-plane decision API", model: opts.model.name, usage: "POST /v1/decisions", docs: "https://github.com/nebryxthegoat/jev-agent-plane" }));
   app.get("/healthz", (c) => c.json({ ok: true, model: opts.model.name }));
 
   app.post("/v1/decisions", async (c) => {

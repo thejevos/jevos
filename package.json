@@ -18,7 +18,7 @@
     "eval:variants": "tsx packages/core/eval/variants.ts",
     "bench": "tsx bench/run.ts",
     "pack:check": "npm run build && npm pack --dry-run -w @agent-control/core -w @agent-control/cli -w @agent-control/planner-claude",
-    "start": "node packages/site/serve.mjs"
+    "start": "node scripts/start.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
