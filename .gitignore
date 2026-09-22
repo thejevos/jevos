@@ -7,3 +7,6 @@ traces
 .acp
 playground
 bench/results
+
+.vercel
+.env*
