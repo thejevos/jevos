@@ -152,6 +152,8 @@ an offline mock. Add `ANTHROPIC_API_KEY` to the same file to use `@jevos/planner
 5. A clean-machine install test of the published CLI, and CI (a GitHub Action running `npm test`).
 6. From the original design, not built: model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`.
 
+**Deploying the site:** Vercel auto-deploys from `nebryxthegoat/jev-agent-plane` (branch `master`), not from this repo — Vercel's Git integration cannot link a repo owned by a different personal GitHub account. After merging here, push the same commits to that repo (`git push origin master` if it is your `origin`), or run `npx vercel deploy --prod --yes` from a machine logged in to the Vercel team. The decision API deploys to Railway with `railway up --service api --detach`.
+
 **Rules of the repo:** the product is the `acp` CLI; the website is information only and must not gain operational features.
 Never change question wording in `packages/core/src/signals.ts` or `DEFAULT_THRESHOLDS` without re-running `npm run eval`.
 The control plane fails closed by design: when in doubt, an action does not run.
