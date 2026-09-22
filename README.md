@@ -1,6 +1,6 @@
 # Agent Control Plane
 
-**The operating system for autonomous agents — powered by Jev.**
+**The operating system for autonomous agents — powered by Jev.** · [www.thejevos.com](https://www.thejevos.com)
 
 Decision and policy runtime that sits between an agent's reasoning (LLM) and its tools.
 **LLMs reason. Tools execute. Code enforces. Jev decides.**
