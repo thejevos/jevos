@@ -136,6 +136,26 @@ or `{ state: AgentState, policy? }` for the standard signals plus a policy verdi
 
 Model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`, framework adapters, a real-LLM planner adapter.
 
+## Handoff notes (2026-09-22)
+
+**Works today:** everything in this README runs locally. 38 tests (`npm test`), `npm run typecheck` and `npm run build` are clean.
+The Jev integration is verified against the live API and the signal questions/thresholds were calibrated on it (`npm run eval`).
+
+**Setup:** `npm install`, then copy `.env.example` to `.env` and add a TypeSafe key (`TYPESAFE_API_KEY`). Without it everything runs on
+an offline mock. Add `ANTHROPIC_API_KEY` to the same file to use `@agent-control/planner-claude` and the benchmark.
+
+**Not done yet, in priority order:**
+1. `npm run bench` has never been run (needs an Anthropic key). Until it has, do not claim measured cost or speed savings.
+2. `@agent-control/planner-claude` has only been tested against a fake client; no real Claude call has gone through the control plane yet.
+3. npm publish: names `@agent-control/*` are free but the scope must be created under the owner's npm account (`npm run pack:check` first).
+4. Host `packages/site` (static files, `npm run site` to preview) and switch its install step to the npm package once published.
+5. A clean-machine install test of the published CLI, and CI (a GitHub Action running `npm test`).
+6. From the original design, not built: model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`.
+
+**Rules of the repo:** the product is the `acp` CLI; the website is information only and must not gain operational features.
+Never change question wording in `packages/core/src/signals.ts` or `DEFAULT_THRESHOLDS` without re-running `npm run eval`.
+The control plane fails closed by design: when in doubt, an action does not run.
+
 ## License
 
 MIT
