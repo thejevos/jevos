@@ -1,0 +1,37 @@
+{
+  "name": "@agent-control/cli",
+  "version": "0.1.0",
+  "description": "acp \u2014 run AI agents under the Agent Control Plane from your terminal.",
+  "type": "module",
+  "bin": {
+    "acp": "./bin/acp.mjs"
+  },
+  "dependencies": {
+    "@agent-control/core": "^0.1.0",
+    "tsx": "^4.19.0"
+  },
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-control",
+    "jev",
+    "guardrails",
+    "policy",
+    "llm"
+  ],
+  "files": [
+    "bin",
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build"
+  }
+}

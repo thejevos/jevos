@@ -1,0 +1,28 @@
+{
+  "name": "agent-control-plane",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "npm run build -w @agent-control/core && npm run build -w @agent-control/planner-claude -w @agent-control/cli",
+    "demo": "tsx examples/research-agent/index.ts",
+    "server": "tsx packages/server/src/main.ts",
+    "site": "node packages/site/serve.mjs",
+    "acp": "node packages/cli/bin/acp.mjs",
+    "eval": "tsx packages/core/eval/run.ts",
+    "eval:variants": "tsx packages/core/eval/variants.ts",
+    "bench": "tsx bench/run.ts",
+    "pack:check": "npm run build && npm pack --dry-run -w @agent-control/core -w @agent-control/cli -w @agent-control/planner-claude"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0"
+  }
+}

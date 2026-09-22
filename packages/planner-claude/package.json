@@ -1,0 +1,45 @@
+{
+  "name": "@agent-control/planner-claude",
+  "version": "0.1.0",
+  "description": "Claude as the planner for Agent Control Plane: the LLM proposes, the control plane decides.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@agent-control/core": "^0.1.0",
+    "@anthropic-ai/sdk": "^0.127.0"
+  },
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "keywords": [
+    "ai-agents",
+    "agent-control",
+    "jev",
+    "guardrails",
+    "policy",
+    "llm"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "paths": {
+      "@agent-control/core": [
+        "../core/dist/index.d.ts"
+      ]
+    }
+  },
+  "include": [
+    "src"
+  ]
+}

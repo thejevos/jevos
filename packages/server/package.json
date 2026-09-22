@@ -1,0 +1,12 @@
+{
+  "name": "@agent-control/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/app.ts" },
+  "dependencies": {
+    "@agent-control/core": "*",
+    "@hono/node-server": "^1.13.0",
+    "hono": "^4.6.0"
+  }
+}
