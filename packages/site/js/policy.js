@@ -1,5 +1,5 @@
 // Browser copy of core's default policy order, used only by the "try a situation" explainer.
-// The real enforcement lives in @agent-control/core (packages/core/src/policy.ts).
+// The real enforcement lives in @jevos/core (packages/core/src/policy.ts).
 
 export const DEFAULT_POLICY = {
   maxSteps: 30,

@@ -8,8 +8,8 @@
  * Baseline = a plain agent loop: whatever the LLM proposes runs, and the LLM alone decides when to stop.
  * Controlled = ControlPlane.run with Jev signals, the policy below, and a simulated human approver.
  */
-import { ControlPlane, JevModel, MockModel, type AgentState, type Planner, type Proposal, type ToolDef } from "@agent-control/core";
-import { ClaudePlanner } from "@agent-control/planner-claude";
+import { ControlPlane, JevModel, MockModel, type AgentState, type Planner, type Proposal, type ToolDef } from "@jevos/core";
+import { ClaudePlanner } from "@jevos/planner-claude";
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { parseArgs } from "node:util";

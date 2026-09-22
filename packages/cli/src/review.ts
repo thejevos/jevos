@@ -1,6 +1,6 @@
 // Commands that close the loop after a run: approvals from another terminal, audit
 // verification, and turning real decisions into eval cases.
-import { ControlPlane, JevModel, listApprovals, MockModel, resolveApproval, verifyChain, type AgentState, type Policy, type TraceEvent, type VerdictAction } from "@agent-control/core";
+import { ControlPlane, JevModel, listApprovals, MockModel, resolveApproval, verifyChain, type AgentState, type Policy, type TraceEvent, type VerdictAction } from "@jevos/core";
 import { existsSync } from "node:fs";
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { userInfo } from "node:os";

@@ -1,4 +1,4 @@
-import { ControlPlane, DEFAULT_THRESHOLDS, JevModel, JsonlSink, MockModel, decide, requestFileApproval, resolvePolicy, type MockResponder, type Planner, type Policy, type ToolDef, type TraceEvent, type VerdictAction } from "@agent-control/core";
+import { ControlPlane, DEFAULT_THRESHOLDS, JevModel, JsonlSink, MockModel, decide, requestFileApproval, resolvePolicy, type MockResponder, type Planner, type Policy, type ToolDef, type TraceEvent, type VerdictAction } from "@jevos/core";
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -12,7 +12,7 @@ import { c, eventLine, table, verdict } from "./term.js";
 const POLICY_FILE = "acp.policy.json";
 const TRACE_FILE = ".acp/traces.jsonl";
 
-const HELP = `${c.bold("acp")} — run AI agents under the Agent Control Plane
+const HELP = `${c.bold("acp")} — run AI agents under JevOS
 
 ${c.bold("Usage")}
   acp init                       write ${POLICY_FILE} and an example agent

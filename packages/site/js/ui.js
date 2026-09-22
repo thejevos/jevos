@@ -40,7 +40,7 @@ const P = {
   ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
 };
 export const icon = (n) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.600" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n] ?? ""}</svg>`;
-export const logo = `<svg class="brand-mark" viewBox="0 0 32 32" fill="none"><rect x=".5" y=".5" width="31" height="31" rx="8.500" fill="#0b0d11" stroke="rgba(255,255,255,.12)"/><path d="M16 5.500 26.500 16 16 26.500 5.500 16Z" stroke="#67e8f9" stroke-width="1.600"/><path d="M16 10.500 21.500 16 16 21.500 10.500 16Z" stroke="#67e8f9" stroke-opacity=".4" stroke-width="1.200"/><circle cx="16" cy="16" r="2.400" fill="#67e8f9"/></svg>`;
+export const logo = `<svg class="brand-mark" viewBox="0 0 32 32" fill="none" aria-hidden="true"><defs><linearGradient id="jg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8fd6d6"/><stop offset=".5" stop-color="#5fe8cf"/><stop offset="1" stop-color="#7fb8b8"/></linearGradient></defs><rect x=".5" y=".5" width="31" height="31" rx="8.5" fill="#050607" stroke="rgba(255,255,255,.1)"/><g stroke="url(#jg)" stroke-width="2.2" stroke-linecap="round" fill="none"><path d="M14.6 6.5v4.3a3 3 0 0 1-3 3H7.3"/><path d="M17.4 6.5v4.3a3 3 0 0 0 3 3h4.3"/><path d="M14.6 25.5v-4.3a3 3 0 0 0-3-3H7.3"/><path d="M17.4 25.5v-4.3a3 3 0 0 1 3-3h4.3"/></g></svg>`;
 
 export const VERDICT = {
   ALLOW: { label: "ALLOW", color: "var(--allow)", plain: "Allowed" },

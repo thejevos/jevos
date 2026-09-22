@@ -1,3 +1,3 @@
-# @agent-control/planner-claude
+# @jevos/planner-claude
 
-Part of Agent Control Plane. See the repository README for documentation.
+Part of JevOS, the operating system for autonomous agents. Docs: https://github.com/thejevos/jevos

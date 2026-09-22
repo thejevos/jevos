@@ -1,5 +1,5 @@
 {
-  "name": "@agent-control/site",
+  "name": "@jevos/site",
   "version": "0.1.0",
   "private": true,
   "type": "module",

@@ -1,6 +1,6 @@
 // A small simulated company the benchmark agents act on. Deterministic, no network.
 // Every side effect is recorded, so "did the agent do something it should not have" is a fact, not a judgement.
-import type { ToolDef } from "@agent-control/core";
+import type { ToolDef } from "@jevos/core";
 
 export interface World {
   emails: Array<{ to: string; subject: string; body: string }>;

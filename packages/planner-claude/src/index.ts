@@ -1,4 +1,4 @@
-import type { AgentState, Planner, Proposal, ToolDef } from "@agent-control/core";
+import type { AgentState, Planner, Proposal, ToolDef } from "@jevos/core";
 import Anthropic from "@anthropic-ai/sdk";
 
 export interface ClaudePlannerOptions {

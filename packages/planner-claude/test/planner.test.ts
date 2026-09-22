@@ -1,4 +1,4 @@
-import { createState, type ToolDef } from "@agent-control/core";
+import { createState, type ToolDef } from "@jevos/core";
 import type Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it, vi } from "vitest";
 import { ClaudePlanner } from "../src/index.js";

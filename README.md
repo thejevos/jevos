@@ -1,14 +1,14 @@
-# Agent Control Plane
+# JevOS
 
 **The operating system for autonomous agents — powered by Jev.** · [www.thejevos.com](https://www.thejevos.com)
 
-Decision and policy runtime that sits between an agent's reasoning (LLM) and its tools.
+JevOS is an agent control plane: a decision and policy runtime that sits between an agent's reasoning (LLM) and its tools.
 **LLMs reason. Tools execute. Code enforces. Jev decides.**
 
 Each step: project state → one parallel [Jev](https://typesafe.ai) call for all signals → deterministic policy → `ALLOW | BLOCK | HUMAN_REVIEW | REPLAN | RETRY | STOP` → execute → trace.
 
 ```
-packages/core      @agent-control/core   library: state projection, signals, policy, recovery, traces, run loop
+packages/core      @jevos/core   library: state projection, signals, policy, recovery, traces, run loop
 packages/cli       acp                   the product surface: run agents under control from your terminal
 packages/planner-claude                  Claude as the planner (the LLM half of a real agent)
 packages/server    POST /v1/decisions    HTTP surface for non-TypeScript agents
@@ -51,7 +51,7 @@ Put your key in `.env` (gitignored; see `.env.example`) and the CLI picks it up.
 ## What the control plane does beyond gating
 
 - **Prompt-injection check.** Every fresh tool result is scored before the planner reads it. Above the threshold the text is withheld from the LLM, the agent is told to use another source, and the event is traced (`prompt_injection`). Measured on live Jev: injected results 0.72-0.99, benign ones (docs, emails, test output) at most 0.07.
-- **Budgets.** Planners report token spend; `maxCost` (control + planner, USD) and `maxPlannerTokens` halt a run. `@agent-control/planner-claude` reports it automatically.
+- **Budgets.** Planners report token spend; `maxCost` (control + planner, USD) and `maxPlannerTokens` halt a run. `@jevos/planner-claude` reports it automatically.
 - **Less latency.** `readOnlyTools` skip the gate's model call entirely (hard rules still apply, results are still checked): the example run drops from 10 decisions to 7. `--speculative` asks the planner for the next step while the result check runs, at the cost of one discarded LLM call per task.
 - **Tamper-evident audit log.** Trace lines are hash-chained; approvals record who answered. `acp traces verify` pinpoints the first altered line.
 - **Timeouts fail closed.** A Jev call that takes longer than 8 s is treated as a failure, so the action goes to a person instead of hanging the agent. Observed Jev latency ranged from 0.3 s to 6.7 s within one evening.
@@ -73,7 +73,7 @@ available - so this project makes no measured claim about savings.
 npm run pack:check                # build + list what each tarball would contain
 ```
 
-`@agent-control/core`, `@agent-control/cli` and `@agent-control/planner-claude` build to `dist/` and are publish-ready. The names are free on npm,
+`@jevos/core`, `@jevos/cli` and `@jevos/planner-claude` build to `dist/` and are publish-ready. The names are free on npm,
 but the `@agent-control` scope has to be created by whoever owns the npm account, and the license is currently `UNLICENSED` - pick one before publishing.
 
 ## Calibration
@@ -100,7 +100,7 @@ The CLI currently runs through `tsx`; the packages are not published to npm yet.
 ## Usage
 
 ```ts
-import { ControlPlane, JevModel, JsonlSink } from "@agent-control/core";
+import { ControlPlane, JevModel, JsonlSink } from "@jevos/core";
 
 const control = new ControlPlane({
   model: new JevModel({ model: "jev-1.13.0" }),
@@ -142,12 +142,12 @@ Model routing, context management (keep/compress/pin), Python SDK, framework ada
 The Jev integration is verified against the live API and the signal questions/thresholds were calibrated on it (`npm run eval`).
 
 **Setup:** `npm install`, then copy `.env.example` to `.env` and add a TypeSafe key (`TYPESAFE_API_KEY`). Without it everything runs on
-an offline mock. Add `ANTHROPIC_API_KEY` to the same file to use `@agent-control/planner-claude` and the benchmark.
+an offline mock. Add `ANTHROPIC_API_KEY` to the same file to use `@jevos/planner-claude` and the benchmark.
 
 **Not done yet, in priority order:**
 1. `npm run bench` has never been run (needs an Anthropic key). Until it has, do not claim measured cost or speed savings.
-2. `@agent-control/planner-claude` has only been tested against a fake client; no real Claude call has gone through the control plane yet.
-3. npm publish: names `@agent-control/*` are free but the scope must be created under the owner's npm account (`npm run pack:check` first).
+2. `@jevos/planner-claude` has only been tested against a fake client; no real Claude call has gone through the control plane yet.
+3. npm publish: names `@jevos/*` are free but the scope must be created under the owner's npm account (`npm run pack:check` first).
 4. Host `packages/site` (static files, `npm run site` to preview) and switch its install step to the npm package once published.
 5. A clean-machine install test of the published CLI, and CI (a GitHub Action running `npm test`).
 6. From the original design, not built: model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`.

@@ -1,5 +1,5 @@
 {
-  "name": "agent-control-plane",
+  "name": "jevos",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "build": "npm run build -w @agent-control/core && npm run build -w @agent-control/planner-claude -w @agent-control/cli",
+    "build": "npm run build -w @jevos/core && npm run build -w @jevos/planner-claude -w @jevos/cli",
     "demo": "tsx examples/research-agent/index.ts",
     "server": "tsx packages/server/src/main.ts",
     "site": "node packages/site/serve.mjs",
@@ -17,7 +17,7 @@
     "eval": "tsx packages/core/eval/run.ts",
     "eval:variants": "tsx packages/core/eval/variants.ts",
     "bench": "tsx bench/run.ts",
-    "pack:check": "npm run build && npm pack --dry-run -w @agent-control/core -w @agent-control/cli -w @agent-control/planner-claude",
+    "pack:check": "npm run build && npm pack --dry-run -w @jevos/core -w @jevos/cli -w @jevos/planner-claude",
     "start": "node scripts/start.mjs"
   },
   "devDependencies": {

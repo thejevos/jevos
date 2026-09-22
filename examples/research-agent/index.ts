@@ -7,7 +7,7 @@
  *
  *   npm run demo
  */
-import { ControlPlane, JevModel, JsonlSink, MemorySink, MockModel, QUESTION_IDS, type Action, type Planner, type ToolDef, type TraceEvent } from "@agent-control/core";
+import { ControlPlane, JevModel, JsonlSink, MemorySink, MockModel, QUESTION_IDS, type Action, type Planner, type ToolDef, type TraceEvent } from "@jevos/core";
 
 const competitors = ["Acme", "Globex", "Initech"];
 let searchCalls = 0;

@@ -1,4 +1,4 @@
-import { MockModel } from "@agent-control/core";
+import { MockModel } from "@jevos/core";
 import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
 

@@ -1,4 +1,4 @@
-import { JevModel, JsonlSink, MockModel } from "@agent-control/core";
+import { JevModel, JsonlSink, MockModel } from "@jevos/core";
 import { serve } from "@hono/node-server";
 import { createApp } from "./app.js";
 

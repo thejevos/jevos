@@ -2,5 +2,5 @@
   "name": "research-agent-example",
   "private": true,
   "type": "module",
-  "dependencies": { "@agent-control/core": "*" }
+  "dependencies": { "@jevos/core": "*" }
 }

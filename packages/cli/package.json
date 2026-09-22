@@ -1,13 +1,14 @@
 {
-  "name": "@agent-control/cli",
+  "name": "@jevos/cli",
   "version": "0.1.0",
-  "description": "acp \u2014 run AI agents under the Agent Control Plane from your terminal.",
+  "description": "acp \u2014 run AI agents under the JevOS from your terminal.",
   "type": "module",
   "bin": {
-    "acp": "./bin/acp.mjs"
+    "acp": "./bin/acp.mjs",
+    "jevos": "./bin/acp.mjs"
   },
   "dependencies": {
-    "@agent-control/core": "^0.1.0",
+    "@jevos/core": "^0.1.0",
     "tsx": "^4.19.0"
   },
   "license": "MIT",
@@ -37,7 +38,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/nebryxthegoat/jev-agent-plane.git"
+    "url": "https://github.com/thejevos/jevos.git"
   },
-  "homepage": "https://www.thejevos.com"
+  "homepage": "https://thejevos.com"
 }

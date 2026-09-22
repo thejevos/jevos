@@ -6,7 +6,7 @@
     "rootDir": "src",
     "declaration": true,
     "paths": {
-      "@agent-control/core": [
+      "@jevos/core": [
         "../core/dist/index.d.ts"
       ]
     }

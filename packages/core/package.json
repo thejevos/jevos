@@ -1,5 +1,5 @@
 {
-  "name": "@agent-control/core",
+  "name": "@jevos/core",
   "version": "0.1.0",
   "description": "Decision and policy runtime for autonomous agents, powered by Jev.",
   "type": "module",
@@ -41,7 +41,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/nebryxthegoat/jev-agent-plane.git"
+    "url": "https://github.com/thejevos/jevos.git"
   },
-  "homepage": "https://www.thejevos.com"
+  "homepage": "https://thejevos.com"
 }

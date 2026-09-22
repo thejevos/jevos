@@ -1,9 +1,9 @@
-/** Written by `acp init`. A real LLM planner; needs Anthropic credentials and `npm i @agent-control/planner-claude`. */
+/** Written by `acp init`. A real LLM planner; needs Anthropic credentials and `npm i @jevos/planner-claude`. */
 export const CLAUDE_AGENT = `// A real agent: Claude proposes each step, the control plane decides whether it runs.
 //   acp run agent.claude.ts --task "Research Acme and email me one line about their pricing"
-// Needs ANTHROPIC_API_KEY (put it in .env) and: npm i @agent-control/planner-claude
-import type { ToolDef } from "@agent-control/core";
-import { ClaudePlanner } from "@agent-control/planner-claude";
+// Needs ANTHROPIC_API_KEY (put it in .env) and: npm i @jevos/planner-claude
+import type { ToolDef } from "@jevos/core";
+import { ClaudePlanner } from "@jevos/planner-claude";
 
 export const task = "Research Acme and email me one line about their pricing.";
 
@@ -24,7 +24,7 @@ export const planner = new ClaudePlanner({ tools });
 export const EXAMPLE_AGENT = `// Example agent for \`acp run agent.example.ts\`.
 // An agent file exports { task, planner, tools }. The planner is your LLM:
 // it proposes the next action. The control plane decides whether it runs.
-import { QUESTION_IDS, type Action, type AgentState, type MockResponder, type Planner, type ToolDef } from "@agent-control/core";
+import { QUESTION_IDS, type Action, type AgentState, type MockResponder, type Planner, type ToolDef } from "@jevos/core";
 
 export const task = "Research three competitors and email me a comparison.";
 
