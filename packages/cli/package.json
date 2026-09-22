@@ -33,5 +33,10 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run build"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nebryxthegoat/jev-agent-plane.git"
+  },
+  "homepage": "https://github.com/nebryxthegoat/jev-agent-plane"
 }

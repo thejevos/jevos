@@ -41,5 +41,10 @@
     "guardrails",
     "policy",
     "llm"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nebryxthegoat/jev-agent-plane.git"
+  },
+  "homepage": "https://github.com/nebryxthegoat/jev-agent-plane"
 }
