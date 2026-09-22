@@ -1,0 +1,21 @@
+# Deploys packages/site to Vercel on every push to master.
+# Needed because Vercel's Git integration cannot link a repo owned by a different personal GitHub account.
+# Requires one repository secret: VERCEL_TOKEN (Vercel -> Account Settings -> Tokens).
+name: Deploy site
+on:
+  push:
+    branches: [master]
+    paths: ["packages/site/**", "vercel.json", ".vercelignore", ".github/workflows/deploy-site.yml"]
+  workflow_dispatch:
+concurrency: { group: deploy-site, cancel-in-progress: true }
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_nKSLKFCnA4gldI7Q8mqgyaZP
+      VERCEL_PROJECT_ID: prj_IYKkigpBOO8xdZbfANrXcYJEDxH1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npx vercel@latest deploy --prod --yes --token "${{ secrets.VERCEL_TOKEN }}"
