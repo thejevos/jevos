@@ -10,7 +10,7 @@
     "@agent-control/core": "^0.1.0",
     "tsx": "^4.19.0"
   },
-  "license": "UNLICENSED",
+  "license": "MIT",
   "engines": {
     "node": ">=20.12"
   },
@@ -25,7 +25,8 @@
   "files": [
     "bin",
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "publishConfig": {
     "access": "public"

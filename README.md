@@ -135,3 +135,7 @@ or `{ state: AgentState, policy? }` for the standard signals plus a policy verdi
 ## Not built yet
 
 Model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`, framework adapters, a real-LLM planner adapter.
+
+## License
+
+MIT
