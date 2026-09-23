@@ -39,6 +39,11 @@ and appends each verdict to `.acp/traces.jsonl`. With no interactive terminal, a
 | `acp label` | Mark recorded decisions right or wrong; they become eval cases in `.acp/cases.jsonl` |
 | `acp eval` | Score the current model + policy against your labeled cases. Exit code 4 on a miss, so CI can catch regressions |
 | `acp doctor` | Show which decision model, policy and trace file will be used |
+| `acp fleet init` | Write `fleet.policy.json`: one policy over many agents |
+| `acp serve --fleet fleet.policy.json` | Start the fleet control plane (set `FLEET_TOKEN`) |
+| `acp run <agent-file> --fleet <url>` | Run an agent under the fleet server instead of a local policy |
+| `acp fleet status --fleet <url>` | Spend, active runs and pending approvals per agent |
+| `acp approvals` / `approve` / `deny` `--fleet <url>` | Answer fleet approvals from any machine |
 
 An agent file exports `{ task, planner, tools }`; `planner.propose(state, hint)` is your LLM.
 
@@ -47,6 +52,26 @@ Set `TYPESAFE_API_KEY` (and optionally `JEV_MODEL=jev-1.13.0` to pin a version) 
 
 The Jev integration is verified against the live API (`jev-1.13.0`): all three answer types parse, decisions take ~350-1000 ms and cost about $0.00003 each.
 Put your key in `.env` (gitignored; see `.env.example`) and the CLI picks it up.
+
+## Fleet control: one policy over many agents
+
+```bash
+acp fleet init                          # writes fleet.policy.json
+FLEET_TOKEN=change-me acp serve --fleet fleet.policy.json
+acp run agent.ts --fleet http://localhost:8787 --agent-id research   # on any machine, FLEET_TOKEN set
+acp fleet status --fleet http://localhost:8787
+acp approve <id> --fleet http://localhost:8787
+```
+
+`fleet.policy.json` holds a base policy every agent inherits, a fleet-wide daily budget and concurrency cap, and one entry per agent:
+which tools it may use, which of them always need a person, its own daily budget and concurrency, and which agents it may hand work to.
+Agents not listed are refused (unless `allowUnknownAgents` is true). The server owns the decision model, the policy, the approval queue
+and the single hash-chained audit log; agents only propose. Fleet checks (unknown agent, budgets, concurrency) run before the per-agent
+policy, which runs before any model signal. If the server cannot be reached, the agent fails closed. Every `/v1/fleet/*` request needs
+`Authorization: Bearer $FLEET_TOKEN`; without a token the server warns and accepts anyone who can reach the port.
+
+In code: `new FleetControlPlane({ url, token, agentId })` has the same `run` / `tool` / `evaluate` surface as `ControlPlane`,
+plus `handoff(toAgent, task)` which asks the fleet whether the transfer is allowed.
 
 ## What the control plane does beyond gating
 
@@ -134,7 +159,7 @@ or `{ state: AgentState, policy? }` for the standard signals plus a policy verdi
 
 ## Not built yet
 
-Model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`, framework adapters, a real-LLM planner adapter.
+Model routing, context management (keep/compress/pin), Python SDK, framework adapters, framework adapters, a real-LLM planner adapter.
 
 ## Handoff notes (2026-09-22)
 
@@ -150,7 +175,7 @@ an offline mock. Add `ANTHROPIC_API_KEY` to the same file to use `@jevos/planner
 3. npm publish: names `@jevos/*` are free but the scope must be created under the owner's npm account (`npm run pack:check` first).
 4. Host `packages/site` (static files, `npm run site` to preview) and switch its install step to the npm package once published.
 5. A clean-machine install test of the published CLI, and CI (a GitHub Action running `npm test`).
-6. From the original design, not built: model routing, context management (keep/compress/pin), Python SDK, framework adapters, `acp serve`.
+6. From the original design, not built: model routing, context management (keep/compress/pin), Python SDK, framework adapters. Fleet control (`acp serve --fleet`) shipped 2026-09-23; fleet accounting is in memory, so restarting the server resets the day's spend counters (the audit log and approvals are on disk).
 
 **Deploying the site:** Vercel auto-deploys from `nebryxthegoat/jev-agent-plane` (branch `master`), not from this repo — Vercel's Git integration cannot link a repo owned by a different personal GitHub account. After merging here, push the same commits to that repo (`git push origin master` if it is your `origin`), or run `npx vercel deploy --prod --yes` from a machine logged in to the Vercel team. The decision API deploys to Railway with `railway up --service api --detach`.
 

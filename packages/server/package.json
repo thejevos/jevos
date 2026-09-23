@@ -2,10 +2,10 @@
   "name": "@jevos/server",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "exports": {
-    ".": "./src/app.ts"
+    ".": "./src/index.ts"
   },
+  "type": "module",
   "dependencies": {
     "@jevos/core": "*",
     "@hono/node-server": "^1.13.0",

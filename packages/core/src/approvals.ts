@@ -49,15 +49,25 @@ export async function resolveApproval(dir: string, id: string, approved: boolean
  * `resolveApproval`) from anywhere. Lets agents run in the background, in CI
  * or on a server. Times out to a denial: no answer never means yes.
  */
+export async function createApproval(dir: string, request: Omit<ApprovalRecord, "id" | "status" | "requestedAt">): Promise<ApprovalRecord> {
+  await mkdir(dir, { recursive: true });
+  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  const record: ApprovalRecord = { ...request, id, status: "pending", requestedAt: new Date().toISOString() };
+  await writeFile(file(dir, id), JSON.stringify(record, null, 2));
+  return record;
+}
+
+export async function getApproval(dir: string, id: string): Promise<ApprovalRecord | undefined> {
+  return read(file(dir, id)).catch(() => undefined);
+}
+
 export async function requestFileApproval(
   dir: string,
   request: Omit<ApprovalRecord, "id" | "status" | "requestedAt">,
   opts: { timeoutMs?: number; pollMs?: number; onPending?: (record: ApprovalRecord) => void } = {},
 ): Promise<ApprovalDecision> {
-  await mkdir(dir, { recursive: true });
-  const id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-  const record: ApprovalRecord = { ...request, id, status: "pending", requestedAt: new Date().toISOString() };
-  await writeFile(file(dir, id), JSON.stringify(record, null, 2));
+  const record = await createApproval(dir, request);
+  const id = record.id;
   opts.onPending?.(record);
 
   const deadline = Date.now() + (opts.timeoutMs ?? 15 * 60_000);

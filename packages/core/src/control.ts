@@ -1,6 +1,6 @@
 import type { ApprovalDecision } from "./approvals.js";
 import { estimateTokens, JEV_USD_PER_INPUT_TOKEN, type DecisionModel } from "./model.js";
-import { decide, resolvePolicy, type Policy, type Thresholds, type Verdict } from "./policy.js";
+import { decide, resolvePolicy, type Policy, type RuntimeCounters, type Thresholds, type Verdict } from "./policy.js";
 import { decideRecovery } from "./recovery.js";
 import { buildQuestions, toSignals, type QuestionOverrides, type Signals } from "./signals.js";
 import { projectState, snapshotState, type ProjectionOptions } from "./state.js";
@@ -100,16 +100,16 @@ const WITHHELD = "[withheld by the control plane: this tool result contained ins
 
 export class ControlPlane {
   readonly policy: Policy;
-  private readonly model: DecisionModel;
-  private readonly agentId: string;
-  private readonly opts: ControlPlaneOptions;
-  private modelCalls = 0;
-  private skippedGates = 0;
-  private cost = 0;
-  private latencyMs = 0;
+  protected readonly model: DecisionModel;
+  protected readonly agentId: string;
+  protected readonly opts: ControlPlaneOptions;
+  protected modelCalls = 0;
+  protected skippedGates = 0;
+  protected cost = 0;
+  protected latencyMs = 0;
   /** Planner spend for the run in progress; counted against maxCost with control spend. */
-  private planner = { cost: 0, tokens: 0 };
-  private runStart = { cost: 0 };
+  protected planner = { cost: 0, tokens: 0 };
+  protected runStart = { cost: 0 };
 
   constructor(opts: ControlPlaneOptions) {
     this.opts = opts;
@@ -125,11 +125,11 @@ export class ControlPlane {
    */
   async evaluate(state: AgentState): Promise<Decision> {
     const action = state.currentAction;
-    const counters = () => ({ step: state.history.length, costSoFar: this.cost - this.runStart.cost + this.planner.cost, plannerTokens: this.planner.tokens });
+    const counters = () => this.counters(state);
 
     // Read-only tools cannot hurt anything, so their gate costs no model call. Hard rules still run.
     if (action && this.policy.readOnlyTools.includes(action.tool)) {
-      let verdict = decide(state, {}, this.policy, counters());
+      let verdict = this.decideWith(state, {}, counters());
       if (verdict.action === "ALLOW") verdict = { action: "ALLOW", rule: "read_only", reason: `"${action.tool}" is marked read-only; gate skipped` };
       this.skippedGates++;
       await this.trace(state, { phase: "gate", decision: verdict.action, rule: verdict.rule, reason: verdict.reason, tool: action.tool, args: action.args, latency_ms: 0, cost: 0 });
@@ -154,7 +154,7 @@ export class ControlPlane {
     this.cost += cost;
     this.latencyMs += latencyMs;
 
-    let verdict = decide(state, signals, this.policy, counters());
+    let verdict = this.decideWith(state, signals, counters());
     // Fail closed: with no signals, hard rules still apply but nothing gets auto-allowed.
     if (modelError && action && verdict.action === "ALLOW") {
       verdict = { action: "HUMAN_REVIEW", rule: "model_unavailable", reason: `decision model failed: ${modelError}` };
@@ -298,7 +298,17 @@ export class ControlPlane {
     }
   }
 
-  private async approve(state: AgentState, decision: Decision): Promise<boolean> {
+  /** Run-level counters the policy's hard limits are checked against. */
+  protected counters(state: AgentState): RuntimeCounters {
+    return { step: state.history.length, costSoFar: this.cost - this.runStart.cost + this.planner.cost, plannerTokens: this.planner.tokens };
+  }
+
+  /** The policy step. A fleet server overrides this to add fleet-wide budgets and per-agent permissions. */
+  protected decideWith(state: AgentState, signals: Signals, counters: RuntimeCounters): Verdict {
+    return decide(state, signals, this.policy, counters);
+  }
+
+  protected async approve(state: AgentState, decision: Decision): Promise<boolean> {
     const action = state.currentAction!;
     const started = performance.now();
     const answer = (await this.opts.onApproval?.({ state, action, verdict: decision.verdict, signals: decision.signals, agentId: this.agentId })) ?? false;
@@ -307,7 +317,7 @@ export class ControlPlane {
     return approved;
   }
 
-  private async execute(def: ToolDef, args: Record<string, unknown>, state: AgentState): Promise<{ ok: boolean; text: string }> {
+  protected async execute(def: ToolDef, args: Record<string, unknown>, state: AgentState): Promise<{ ok: boolean; text: string }> {
     const started = performance.now();
     let outcome: { ok: boolean; text: string };
     try {
@@ -320,7 +330,7 @@ export class ControlPlane {
     return outcome;
   }
 
-  private async trace(state: AgentState, event: Omit<TraceEvent, "timestamp" | "agent_id" | "model" | "step"> & { step?: number }, snapshot = false): Promise<void> {
+  protected async trace(state: AgentState, event: Omit<TraceEvent, "timestamp" | "agent_id" | "model" | "step"> & { step?: number }, snapshot = false): Promise<void> {
     await this.opts.sink?.write({
       timestamp: new Date().toISOString(), agent_id: this.agentId, model: this.model.name, step: state.history.length,
       ...event,

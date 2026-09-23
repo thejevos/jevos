@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@jevos/core": "^0.1.0",
-    "tsx": "^4.19.0"
+    "tsx": "^4.19.0",
+    "@jevos/server": "*"
   },
   "license": "MIT",
   "engines": {

@@ -12,3 +12,4 @@ bench/results
 .env*
 demo-run
 demo-capture
+fleet-e2e

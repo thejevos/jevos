@@ -7,5 +7,7 @@ export * from "./recovery.js";
 export * from "./trace.js";
 export * from "./approvals.js";
 export * from "./control.js";
+export * from "./fleet.js";
+export * from "./fleet-client.js";
 export { JevModel, type JevOptions } from "./jev.js";
 export { MockModel, type MockResponder } from "./mock.js";

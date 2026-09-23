@@ -1,4 +1,4 @@
-import { ControlPlane, DEFAULT_THRESHOLDS, JevModel, JsonlSink, MockModel, decide, requestFileApproval, resolvePolicy, type MockResponder, type Planner, type Policy, type ToolDef, type TraceEvent, type VerdictAction } from "@jevos/core";
+import { ControlPlane, DEFAULT_THRESHOLDS, EXAMPLE_FLEET_POLICY, FleetControlPlane, JevModel, JsonlSink, MockModel, decide, requestFileApproval, resolvePolicy, type MockResponder, type Planner, type Policy, type ToolDef, type TraceEvent, type VerdictAction } from "@jevos/core";
 import { existsSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -6,6 +6,7 @@ import { createInterface } from "node:readline/promises";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { CLAUDE_AGENT, EXAMPLE_AGENT } from "./template.js";
+import { fleetApprovals, fleetInit, fleetResolve, fleetStatus, serveCmd } from "./fleet.js";
 import { APPROVALS_DIR, approvals, evaluate, label, resolve as resolveCmd, verify, whoami } from "./review.js";
 import { c, eventLine, table, verdict } from "./term.js";
 
@@ -26,6 +27,13 @@ ${c.bold("Usage")}
   acp policy check [opts]        replay a policy against recorded decisions
   acp doctor                     show which decision model and files will be used
 
+${c.bold("Fleet")} — one policy over many agents
+  acp fleet init                 write fleet.policy.json
+  acp serve --fleet fleet.policy.json   start the fleet control plane (FLEET_TOKEN required)
+  acp run <agent> --fleet <url>  run an agent under the fleet server
+  acp fleet status --fleet <url> spend, active runs and pending approvals per agent
+  acp approvals|approve|deny --fleet <url>   answer fleet approvals from any machine
+
 ${c.bold("run options")}
   --task <text>        override the task exported by the agent file
   --policy <file>      policy file (default ${POLICY_FILE})
@@ -35,6 +43,7 @@ ${c.bold("run options")}
   --queue-approvals    park review requests in .acp/approvals and wait for "acp approve" (background, CI, server)
   --approval-timeout <s>  how long a queued request waits before it is denied (default 900)
   --speculative        ask the planner for the next step while the result check runs
+  --fleet <url>        run under a fleet control plane (token from FLEET_TOKEN or --token)
   --quiet              only print the final summary
 
 ${c.bold("traces options")}
@@ -92,7 +101,7 @@ async function init(): Promise<number> {
 async function run(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
     args: argv, allowPositionals: true,
-    options: { task: { type: "string" }, policy: { type: "string", default: POLICY_FILE }, traces: { type: "string", default: TRACE_FILE }, "agent-id": { type: "string" }, "auto-approve": { type: "boolean", default: false }, "queue-approvals": { type: "boolean", default: false }, "approval-timeout": { type: "string", default: "900" }, speculative: { type: "boolean", default: false }, quiet: { type: "boolean", default: false } },
+    options: { task: { type: "string" }, policy: { type: "string", default: POLICY_FILE }, traces: { type: "string", default: TRACE_FILE }, "agent-id": { type: "string" }, "auto-approve": { type: "boolean", default: false }, "queue-approvals": { type: "boolean", default: false }, "approval-timeout": { type: "string", default: "900" }, speculative: { type: "boolean", default: false }, fleet: { type: "string" }, token: { type: "string" }, quiet: { type: "boolean", default: false } },
   });
   const file = positionals[0];
   if (!file) throw new Error("usage: acp run <agent-file>");
@@ -108,12 +117,17 @@ async function run(argv: string[]): Promise<number> {
   const model = process.env.TYPESAFE_API_KEY ? new JevModel({ model: process.env.JEV_MODEL }) : new MockModel(mod.mockResponder);
   const agentId = values["agent-id"] ?? file.replace(/^.*[\\/]/, "").replace(/\.[^.]+$/, "");
   const jsonl = new JsonlSink(values.traces!, { chain: true });
+  const fleetUrl = values.fleet;
   const say = (line: string) => { if (!values.quiet) console.log(line); };
 
-  say(`${c.bold("acp")} ${c.gray("·")} agent ${c.magenta(agentId)} ${c.gray("·")} model ${model.name === "mock" ? c.yellow("mock (offline)") : c.cyan(model.name)} ${c.gray("·")} policy ${existsSync(values.policy!) ? values.policy : "defaults"}`);
+  say(`${c.bold("acp")} ${c.gray("·")} agent ${c.magenta(agentId)} ${c.gray("·")} ${values.fleet ? `fleet ${c.cyan(values.fleet)} (policy and model owned by the fleet)` : `model ${model.name === "mock" ? c.yellow("mock (offline)") : c.cyan(model.name)} ${c.gray("·")} policy ${existsSync(values.policy!) ? values.policy : "defaults"}`}`);
   say(`${c.gray("task")} ${task}\n`);
 
-  const control = new ControlPlane({
+  const control = fleetUrl ? new FleetControlPlane({
+    url: fleetUrl, token: values.token ?? process.env.FLEET_TOKEN, agentId, speculativePlanning: values.speculative,
+    approvalTimeoutMs: Number(values["approval-timeout"]) * 1000,
+    onPending: (r) => console.log(`\n  ${c.yellow("┌ approval needed (fleet)")}\n  ${c.yellow("│")} ${c.bold(r.action.tool)} ${c.gray(JSON.stringify(r.action.args ?? {}))}\n  ${c.yellow("│")} ${r.reason}\n  ${c.yellow("└")} waiting — from any machine: ${c.cyan(`acp approve ${r.id} --fleet ${fleetUrl}`)}\n`),
+  }) : new ControlPlane({
     model, policy, agentId, traceSnapshots: true, speculativePlanning: values.speculative,
     sink: { write: (e: TraceEvent) => { say(eventLine(e)); return jsonl.write(e); } },
     onApproval: async ({ state, action, verdict: v, signals }) => {
@@ -148,7 +162,7 @@ async function run(argv: string[]): Promise<number> {
     ["control decisions", `${result.stats.modelCalls} ${c.gray(`(${result.stats.controlLatencyMs}ms total, est. $${result.stats.controlCost.toFixed(6)})`)}`],
     ...(result.stats.skippedGates ? [["gates skipped (read-only)", result.stats.skippedGates] as [string, number]] : []),
     ...(result.stats.quarantinedResults ? [["tool results withheld", `${result.stats.quarantinedResults} ${c.red("(prompt injection)")}`] as [string, string]] : []),
-    ["traces", `${values.traces!} ${c.gray("(hash-chained)")}`],
+    ["traces", fleetUrl ? `${fleetUrl} ${c.gray("(fleet log)")}` : `${values.traces!} ${c.gray("(hash-chained)")}`],
   ]));
   return result.status === "complete" ? 0 : 2;
 }
@@ -208,6 +222,8 @@ async function doctor(): Promise<number> {
   return 0;
 }
 
+const fleetArg = (argv: string[]) => argv.includes("--fleet");
+
 export async function main(argv: string[]): Promise<number> {
   const [cmd, ...rest] = argv;
   try {
@@ -218,9 +234,14 @@ export async function main(argv: string[]): Promise<number> {
       case "policy":
         if (rest[0] === "check") return await policyCheck(rest.slice(1));
         throw new Error("usage: acp policy check");
-      case "approvals": return await approvals();
-      case "approve": return await resolveCmd(rest, true);
-      case "deny": return await resolveCmd(rest, false);
+      case "approvals": return fleetArg(rest) ? await fleetApprovals(rest) : await approvals();
+      case "approve": return fleetArg(rest) ? await fleetResolve(rest, true) : await resolveCmd(rest, true);
+      case "deny": return fleetArg(rest) ? await fleetResolve(rest, false) : await resolveCmd(rest, false);
+      case "serve": return await serveCmd(rest);
+      case "fleet":
+        if (rest[0] === "init") return await fleetInit(EXAMPLE_FLEET_POLICY);
+        if (rest[0] === "status") return await fleetStatus(rest.slice(1));
+        throw new Error("usage: acp fleet init | acp fleet status --fleet <url>");
       case "label": return await label(rest, TRACE_FILE);
       case "eval": return await evaluate(await loadPolicy(POLICY_FILE, false));
       case "doctor": return await doctor();
