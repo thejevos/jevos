@@ -129,6 +129,11 @@ const CLI = [
   ["acp eval", "Score the current model and policy against your labeled cases. Exit code 4 on any miss, so CI can catch regressions.", []],
   ["acp policy check", "Replay recorded gate decisions through a policy file and report what would change.", [["--policy <file>", "Candidate policy"], ["--traces <file>", "Trace file to replay"], ["--show-changes", "List every decision that flips"]]],
   ["acp doctor", "Show which decision model, policy and trace file will be used.", []],
+  ["acp fleet init", "Write fleet.policy.json: a base policy every agent inherits, a fleet-wide daily budget and concurrency cap, and per-agent tools, approvals, budgets and allowed handoffs.", []],
+  ["acp serve --fleet fleet.policy.json", "Start the fleet control plane. It owns the decision model, the policy, the approval queue and the single hash-chained audit log. Set FLEET_TOKEN; every request must carry it.", [["--port <n>", "Default 8787"], ["--traces <file>", "Fleet audit log (default .acp/fleet-traces.jsonl)"]]],
+  ["acp run <agent-file> --fleet <url>", "Run an agent under the fleet server instead of a local policy. Unknown agents are refused, tools outside the agent’s permissions are blocked, budgets are enforced fleet-wide, and the agent fails closed if the server is unreachable.", [["--agent-id <name>", "Must match an entry in fleet.policy.json"], ["--token <t>", "Or FLEET_TOKEN in the environment"]]],
+  ["acp fleet status --fleet <url>", "Spend today vs budget, active runs and pending approvals, per agent and for the whole fleet.", []],
+  ["acp approvals · approve · deny — with --fleet <url>", "Answer any agent’s review request from any machine that has the fleet token.", []],
 ];
 function cli(root) {
   root.innerHTML = `<section class="doc-head"><div class="eyebrow">CLI reference</div><h1 class="doc-h1"><span class="mono">acp</span></h1><p class="lede">Inside this repository run it as <span class="mono">npx acp</span>. Decisions come from Jev when <span class="mono">TYPESAFE_API_KEY</span> is set, otherwise from the offline mock.</p></section>
