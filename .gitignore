@@ -10,3 +10,5 @@ bench/results
 
 .vercel
 .env*
+demo-run
+demo-capture

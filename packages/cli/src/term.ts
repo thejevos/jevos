@@ -1,6 +1,6 @@
 import type { Signals, TraceEvent } from "@jevos/core";
 
-const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
+const useColor = (process.stdout.isTTY || Boolean(process.env.FORCE_COLOR)) && !process.env.NO_COLOR;
 const wrap = (code: string) => (s: string) => (useColor ? `\x1b[${code}m${s}\x1b[0m` : s);
 export const c = {
   dim: wrap("2"), bold: wrap("1"), red: wrap("31"), green: wrap("32"), yellow: wrap("33"),
