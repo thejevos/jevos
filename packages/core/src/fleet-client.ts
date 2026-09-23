@@ -5,7 +5,7 @@ import type { Verdict } from "./policy.js";
 import type { AgentState } from "./types.js";
 import type { TraceEvent } from "./trace.js";
 
-export interface FleetClientOptions extends Omit<ControlPlaneOptions, "model" | "policy" | "sink" | "onApproval"> {
+export interface FleetClientOptions extends Omit<ControlPlaneOptions, "model" | "policy" | "onApproval"> {
   /** Fleet server, e.g. http://localhost:8787 */
   url: string;
   /** Shared fleet token (FLEET_TOKEN on the server). */
@@ -68,6 +68,9 @@ export class FleetControlPlane extends ControlPlane {
     this.modelCalls++;
     this.cost += decision.cost;
     this.latencyMs += Math.round(performance.now() - started);
+    // The server already logged this decision; mirror it to the local sink (the terminal) only.
+    const action = state.currentAction;
+    await this.opts.sink?.write({ timestamp: new Date().toISOString(), agent_id: this.agentId, model: this.remoteModel, step: state.history.length, phase: action ? "gate" : "check", decision: decision.verdict.action, rule: decision.verdict.rule, reason: decision.verdict.reason, signals: decision.signals, tool: action?.tool, args: action?.args, latency_ms: decision.latencyMs, cost: decision.cost });
     return decision;
   }
 
@@ -95,7 +98,8 @@ export class FleetControlPlane extends ControlPlane {
 
   protected override async trace(state: AgentState, event: Omit<TraceEvent, "timestamp" | "agent_id" | "model" | "step"> & { step?: number }): Promise<void> {
     const full: TraceEvent = { timestamp: new Date().toISOString(), agent_id: this.agentId, model: this.remoteModel, step: state.history.length, ...event };
-    await this.call("POST", "/v1/fleet/traces", full).catch(() => {});
+    // The fleet log is the record; a local sink (e.g. the terminal) may mirror it.
+    await Promise.all([this.call("POST", "/v1/fleet/traces", full).catch(() => {}), this.opts.sink?.write(full)]);
   }
 
   override async run(opts: RunOptions): Promise<RunResult> {

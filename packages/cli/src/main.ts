@@ -125,6 +125,7 @@ async function run(argv: string[]): Promise<number> {
 
   const control = fleetUrl ? new FleetControlPlane({
     url: fleetUrl, token: values.token ?? process.env.FLEET_TOKEN, agentId, speculativePlanning: values.speculative,
+    sink: { write: (e: TraceEvent) => say(eventLine(e)) },
     approvalTimeoutMs: Number(values["approval-timeout"]) * 1000,
     onPending: (r) => console.log(`\n  ${c.yellow("┌ approval needed (fleet)")}\n  ${c.yellow("│")} ${c.bold(r.action.tool)} ${c.gray(JSON.stringify(r.action.args ?? {}))}\n  ${c.yellow("│")} ${r.reason}\n  ${c.yellow("└")} waiting — from any machine: ${c.cyan(`acp approve ${r.id} --fleet ${fleetUrl}`)}\n`),
   }) : new ControlPlane({
