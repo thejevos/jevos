@@ -18,7 +18,8 @@
     "eval:variants": "tsx packages/core/eval/variants.ts",
     "bench": "tsx bench/run.ts",
     "pack:check": "npm run build && npm pack --dry-run -w @jevos/core -w @jevos/cli -w @jevos/planner-claude",
-    "start": "node scripts/start.mjs"
+    "start": "node scripts/start.mjs",
+    "eval:route": "tsx packages/core/eval/route.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

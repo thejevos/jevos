@@ -13,6 +13,7 @@ const VERDICT_COLOR: Record<string, (s: string) => string> = {
   BLOCK: c.red, FAILED: c.red, DENIED: c.red,
   REPLAN: c.blue, RETRY: c.blue,
   STOP: c.cyan,
+  ROUTED: c.magenta,
 };
 export const verdict = (d: string, width = 12) => (VERDICT_COLOR[d] ?? ((s: string) => s))(d.padEnd(width));
 

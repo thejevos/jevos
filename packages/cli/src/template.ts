@@ -2,7 +2,7 @@
 export const CLAUDE_AGENT = `// A real agent: Claude proposes each step, the control plane decides whether it runs.
 //   acp run agent.claude.ts --task "Research Acme and email me one line about their pricing"
 // Needs ANTHROPIC_API_KEY (put it in .env) and: npm i @jevos/planner-claude
-import type { ToolDef } from "@jevos/core";
+import { DEFAULT_TIER_CRITERIA, JevModel, MockModel, RoutingPlanner, type ToolDef } from "@jevos/core";
 import { ClaudePlanner } from "@jevos/planner-claude";
 
 export const task = "Research Acme and email me one line about their pricing.";
@@ -16,8 +16,17 @@ export const tools: ToolDef[] = [
     execute: ({ to }) => \`Email delivered to \${to}.\` },
 ];
 
-// claude-opus-5 by default; the planner reports its token spend, which counts against maxCost in acp.policy.json.
-export const planner = new ClaudePlanner({ tools });
+// Model routing: before each step Jev decides whether a cheap model is enough. Routine steps
+// (an obvious search, a retry, reporting done) go to Haiku; synthesis, judgement and code
+// design go to Opus. Every route shows up in the trace as ROUTED <tier>.
+// For a single model instead: export const planner = new ClaudePlanner({ tools });
+export const planner = new RoutingPlanner({
+  model: process.env.TYPESAFE_API_KEY ? new JevModel({ model: process.env.JEV_MODEL }) : new MockModel(),
+  tiers: [
+    { name: "fast", planner: new ClaudePlanner({ tools, model: "claude-haiku-4-5" }), criteria: DEFAULT_TIER_CRITERIA.fast },
+    { name: "powerful", planner: new ClaudePlanner({ tools, model: "claude-opus-5" }), criteria: DEFAULT_TIER_CRITERIA.powerful },
+  ],
+});
 `;
 
 /** Written by `acp init`. Runs offline; swap ScriptedPlanner for your LLM. */

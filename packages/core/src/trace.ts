@@ -10,9 +10,9 @@ export interface TraceEvent {
   timestamp: string;
   agent_id: string;
   step: number;
-  /** gate = before a tool runs, check = after a result, recovery = after a failure, tool = execution record */
-  phase: "gate" | "check" | "recovery" | "tool";
-  decision: VerdictAction | "EXECUTED" | "FAILED" | "APPROVED" | "DENIED";
+  /** gate = before a tool runs, check = after a result, recovery = after a failure, tool = execution record, route = model tier chosen for a planner call */
+  phase: "gate" | "check" | "recovery" | "tool" | "route";
+  decision: VerdictAction | "EXECUTED" | "FAILED" | "APPROVED" | "DENIED" | "ROUTED";
   rule?: string;
   reason?: string;
   signals?: Signals;

@@ -161,6 +161,7 @@ async function run(argv: string[]): Promise<number> {
     ["tool executions", result.stats.steps],
     ["planner (LLM) calls", `${result.stats.plannerCalls}${result.stats.discardedPlannerCalls ? c.gray(` (${result.stats.discardedPlannerCalls} speculative, discarded)`) : ""}${result.stats.plannerTokens ? c.gray(` · ${result.stats.plannerTokens} tokens · $${result.stats.plannerCost.toFixed(4)}`) : ""}`],
     ["control decisions", `${result.stats.modelCalls} ${c.gray(`(${result.stats.controlLatencyMs}ms total, est. $${result.stats.controlCost.toFixed(6)})`)}`],
+    ...(result.stats.routes ? [["model routing", Object.entries(result.stats.routes).map(([tier, n]) => `${tier} ×${n}`).join(c.gray(" · "))] as [string, string]] : []),
     ...(result.stats.skippedGates ? [["gates skipped (read-only)", result.stats.skippedGates] as [string, number]] : []),
     ...(result.stats.quarantinedResults ? [["tool results withheld", `${result.stats.quarantinedResults} ${c.red("(prompt injection)")}`] as [string, string]] : []),
     ["traces", fleetUrl ? `${fleetUrl} ${c.gray("(fleet log)")}` : `${values.traces!} ${c.gray("(hash-chained)")}`],

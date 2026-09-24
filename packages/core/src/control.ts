@@ -61,7 +61,7 @@ export interface PlannerUsage {
   costUsd?: number;
   tokens?: number;
 }
-export type Proposal = (Action | { finish: string }) & { usage?: PlannerUsage };
+export type Proposal = (Action | { finish: string }) & { usage?: PlannerUsage; route?: import("./routing.js").RouteDecision };
 
 /** The reasoning side of the agent: an LLM, a graph, anything that proposes actions. */
 export interface Planner {
@@ -84,6 +84,8 @@ export interface RunStats {
   modelCalls: number;
   skippedGates: number;
   quarantinedResults: number;
+  /** Planner calls per model tier, when a RoutingPlanner was used. */
+  routes?: Record<string, number>;
   controlCost: number;
   controlLatencyMs: number;
 }
@@ -197,6 +199,7 @@ export class ControlPlane {
     this.runStart = { cost: this.cost };
     this.planner = { cost: 0, tokens: 0 };
     let plannerCalls = 0, discarded = 0, quarantined = 0, replans = 0;
+    const routes: Record<string, number> = {};
     let hint: string | undefined;
     /** A proposal requested speculatively, before the post-result check finished. */
     let speculative: { promise: Promise<Proposal>; abort: AbortController } | undefined;
@@ -218,6 +221,7 @@ export class ControlPlane {
           steps: state.history.length, plannerCalls, discardedPlannerCalls: discarded,
           plannerCost: this.planner.cost, plannerTokens: this.planner.tokens,
           modelCalls: this.modelCalls - base.calls, skippedGates: this.skippedGates - base.skipped, quarantinedResults: quarantined,
+          routes: Object.keys(routes).length ? routes : undefined,
           controlCost: this.cost - base.cost, controlLatencyMs: this.latencyMs - base.latency,
         },
       };
@@ -242,6 +246,10 @@ export class ControlPlane {
       hint = undefined;
       const proposal = await pending.promise;
       if (proposal.usage) { this.planner.cost += proposal.usage.costUsd ?? 0; this.planner.tokens += proposal.usage.tokens ?? 0; }
+      if (proposal.route) {
+        routes[proposal.route.tier] = (routes[proposal.route.tier] ?? 0) + 1;
+        await this.trace(state, { phase: "route", decision: "ROUTED", rule: proposal.route.tier, reason: proposal.route.fallback ? `fallback: ${proposal.route.fallback}` : `p=${proposal.route.confidence.toFixed(2)}`, latency_ms: proposal.route.latencyMs, cost: 0 });
+      }
       if ("finish" in proposal) return finish("complete", "planner finished", proposal.finish);
 
       const action: Action = { tool: proposal.tool, args: proposal.args, rationale: proposal.rationale };

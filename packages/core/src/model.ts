@@ -26,6 +26,10 @@ export interface ChoiceAnswer {
   type: "choice";
   choice: string;
   probabilities: Record<string, number>;
+  /**
+   * Jev's decisiveness for this pick, not P(choice): a 52/48 split comes back with
+   * confidence ~0.04. Use it to decide whether the pick is trustworthy at all.
+   */
   confidence: number;
 }
 

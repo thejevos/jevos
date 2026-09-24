@@ -53,6 +53,27 @@ Set `TYPESAFE_API_KEY` (and optionally `JEV_MODEL=jev-1.13.0` to pin a version) 
 The Jev integration is verified against the live API (`jev-1.13.0`): all three answer types parse, decisions take ~350-1000 ms and cost about $0.00003 each.
 Put your key in `.env` (gitignored; see `.env.example`) and the CLI picks it up.
 
+## Model routing: the cheapest model that can handle the step
+
+```ts
+const planner = new RoutingPlanner({
+  model: new JevModel(),
+  tiers: [
+    { name: "fast",     planner: new ClaudePlanner({ tools, model: "claude-haiku-4-5" }), criteria: DEFAULT_TIER_CRITERIA.fast },
+    { name: "powerful", planner: new ClaudePlanner({ tools, model: "claude-opus-5" }),   criteria: DEFAULT_TIER_CRITERIA.powerful },
+  ],
+});
+```
+
+Before each planner call, Jev is asked one Choice question: which tier is enough for the next step. The step goes to the cheapest tier
+Jev is decisive about; if Jev is unsure (confidence below 0.6) or unreachable, it goes to the most capable tier. `RoutingPlanner` is itself
+a `Planner`, so it works with any tiers and any control plane; each route is traced as `ROUTED <tier>` and counted in `stats.routes`.
+
+Calibrated with `npm run eval:route` on live jev-1.13.0: 16 labeled steps, the enumerated tier criteria in `DEFAULT_TIER_CRITERIA` pick
+the right tier on 15/16 outright; the one miss is a 52/48 split that the confidence floor sends to the capable tier. The floor also sends a
+borderline routine step there now and then, which costs a little more but never quality. Short wording ("the next step is simple") managed 75%.
+Jev's Choice `confidence` is a decisiveness score, not P(choice): a 52/48 split reports ~0.04, which is exactly what the floor should catch.
+
 ## Fleet control: one policy over many agents
 
 ```bash
@@ -175,7 +196,7 @@ an offline mock. Add `ANTHROPIC_API_KEY` to the same file to use `@jevos/planner
 3. npm publish: names `@jevos/*` are free but the scope must be created under the owner's npm account (`npm run pack:check` first).
 4. Host `packages/site` (static files, `npm run site` to preview) and switch its install step to the npm package once published.
 5. A clean-machine install test of the published CLI, and CI (a GitHub Action running `npm test`).
-6. From the original design, not built: model routing, context management (keep/compress/pin), Python SDK, framework adapters. Fleet control (`acp serve --fleet`) shipped 2026-09-23; fleet accounting is in memory, so restarting the server resets the day's spend counters (the audit log and approvals are on disk).
+6. From the original design, not built: context management (keep/compress/pin), Python SDK, framework adapters. Model routing (`RoutingPlanner`) shipped 2026-09-24. Fleet control (`acp serve --fleet`) shipped 2026-09-23; fleet accounting is in memory, so restarting the server resets the day's spend counters (the audit log and approvals are on disk).
 
 **Deploying the site:** Vercel auto-deploys from `nebryxthegoat/jev-agent-plane` (branch `master`), not from this repo — Vercel's Git integration cannot link a repo owned by a different personal GitHub account. After merging here, push the same commits to that repo (`git push origin master` if it is your `origin`), or run `npx vercel deploy --prod --yes` from a machine logged in to the Vercel team. The decision API deploys to Railway with `railway up --service api --detach`.
 
